@@ -1,6 +1,6 @@
 package com.cs4520.assignment5.data.api
 
-import com.cs4520.assignment5.Api
+import com.cs4520.assignment5.util.constants.Api
 import com.cs4520.assignment5.data.models.ProductDto
 import retrofit2.Response
 import retrofit2.http.GET
