@@ -18,7 +18,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cs4520.assignment5.data.models.Product
@@ -29,57 +28,33 @@ import com.cs4520.assignment5.domain.ProductListViewModel
 fun ProductListFragment(
     productListViewModel: ProductListViewModel = viewModel()
 ) {
-    val isLoading = productListViewModel.isLoading.value
     val context = LocalContext.current
-    var progressBar: Boolean? = null
-    var productList: Boolean? = null
-    var noProductText: Boolean? = null
 
-    productListViewModel.isLoading.observe(LocalLifecycleOwner.current) {
-        if (it) {
-            progressBar = LoadingProgressBarScreen()
+    val isLoading = productListViewModel.isLoading.value
+
+    val productListState = productListViewModel.productListState.value
+
+    val errorMessageState = productListViewModel.errorMessageState.value
+
+    if (isLoading) {
+        LoadingProgressBarScreen()
+    }
+    
+    productListState?.run {
+        if (this.isEmpty()) {
+            NoProductsAvailableScreen()
         } else {
-            progressBar = null
+            ProductListScreen(productListViewModel = productListViewModel)
         }
     }
 
-    productListViewModel.productListLiveData.observe(LocalLifecycleOwner.current) {
-        if (it == null) {
-            noProductText = null
-            productList = null
-        } else {
-            if (it.isEmpty()) {
-                noProductText = NoProductsAvailableScreen()
-                productList = null
-            } else {
-                productList = ProductListScreen(
-                    productListViewModel = productListViewModel,
-                )
-                noProductText = null
-            }
-        }
+    if (errorMessageState.isNullOrEmpty().not()) {
+        Toast.makeText(
+            context,
+            errorMessageState,
+            Toast.LENGTH_LONG
+        ).show()
     }
-
-    productListViewModel.errorMessageLiveData.observe(LocalLifecycleOwner.current) {
-        if (it != null) {
-            Toast.makeText(
-                context,
-                it,
-                Toast.LENGTH_LONG
-            ).show()
-        }
-    }
-
-    productListViewModel.pageNumberLiveData.observe(LocalLifecycleOwner.current) {
-        productListViewModel.fetchProducts(it)
-    }
-
-//    if (productListViewModel.isLoading.value == true) {
-//        LoadingProgressBarScreen()
-//    } else if(productListViewModel.productListLiveData.value?.isEmpty() == true) {
-//        NoProductsAvailableScreen()
-//    }
-
 }
 
 /**
@@ -122,10 +97,10 @@ fun ProductListScreen(
 
         ProductList(
             modifier = Modifier.weight(1f),
-            products = productListViewModel.productListLiveData.value ?: emptyList()
+            products = productListViewModel.productListState.value ?: emptyList()
         )
         PaginationComponent(
-            page = productListViewModel.pageNumberLiveData.value ?: 1,
+            page = productListViewModel.pageNumberState.value ?: 1,
             onPageNext = { productListViewModel.onNextPageClick() },
             onPageBack = { productListViewModel.onBackPageClick() }
         )

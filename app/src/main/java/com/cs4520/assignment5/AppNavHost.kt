@@ -25,7 +25,7 @@ fun AppNavHost(
         composable(NavigationItem.Login.route) {
             LoginFragment(navController)
         }
-        composable(NavigationItem.Login.route) {
+        composable(NavigationItem.ProductList.route) {
             ProductListFragment()
         }
     }

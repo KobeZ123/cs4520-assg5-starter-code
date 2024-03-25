@@ -3,9 +3,9 @@ package com.cs4520.assignment5.domain
 import android.app.Application
 import android.os.Build
 import androidx.annotation.RequiresApi
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
 import androidx.work.PeriodicWorkRequestBuilder
@@ -48,22 +48,19 @@ class ProductListViewModel(
 
     private val repository: ProductRepository = ProductRepositoryImpl(productClient, productDao)
 
-    private val _isLoading = MutableLiveData<Boolean>()
-    val isLoading: LiveData<Boolean>
-        get() = _isLoading
+    var isLoading: MutableState<Boolean> = mutableStateOf(true)
 
-    private var _productListLiveData = MutableLiveData<List<Product>?>()
-    val productListLiveData: LiveData<List<Product>?>
-        get() = _productListLiveData
+    var productListState: MutableState<List<Product>?> = mutableStateOf(null)
 
-    private var _errorMessageLiveData = MutableLiveData<String?>(null)
-    val errorMessageLiveData: LiveData<String?>
-        get() = _errorMessageLiveData
+    var errorMessageState: MutableState<String?> = mutableStateOf(null)
 
-    private var _pageNumberLiveData = MutableLiveData(1)
+    var pageNumberState: MutableState<Int> = mutableStateOf(1)
 
-    val pageNumberLiveData: LiveData<Int>
-        get() = _pageNumberLiveData
+    init {
+        viewModelScope.launch {
+            fetchProducts(pageNumberState.value)
+        }
+    }
 
     /**
      * fetch products from the repository using coroutine
@@ -72,8 +69,8 @@ class ProductListViewModel(
      */
     @RequiresApi(Build.VERSION_CODES.O)
     fun fetchProducts(page: Int) {
-        _isLoading.postValue(true)
-        _productListLiveData.postValue(null)
+        isLoading.value = true
+        productListState.value = null
         viewModelScope.launch {
             // set up the work manager
             val work = PeriodicWorkRequestBuilder<FetchProducts>(repeatInterval= Duration.ofHours(1)).build()
@@ -83,23 +80,25 @@ class ProductListViewModel(
                 val response = repository.getProduct(page)
 
                 response?.let {
-                    _productListLiveData.postValue(it.filterList())
+                    productListState.value = it.filterList()
                 } ?: run {
-                    _errorMessageLiveData.postValue("Random error occurred in API response")
+                    errorMessageState.value = "Random error occurred in API response"
                 }
             } catch (e: Exception){
-                _errorMessageLiveData.postValue(e.message)
+                errorMessageState.value = e.message
             } finally {
-                _isLoading.postValue(false)
+                isLoading.value = false
             }
         }
     }
 
     fun onNextPageClick() {
-        _pageNumberLiveData.postValue(pageNumberLiveData.value?.plus(1))
+        pageNumberState.value += 1
     }
 
     fun onBackPageClick() {
-        _pageNumberLiveData.postValue(_pageNumberLiveData.value?.minus(1))
+        if (pageNumberState.value > 1) {
+            pageNumberState.value -= 1
+        }
     }
 }
