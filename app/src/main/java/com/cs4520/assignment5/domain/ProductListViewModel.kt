@@ -5,7 +5,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import androidx.room.Room
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.cs4520.assignment5.util.constants.Api
@@ -27,21 +30,22 @@ class ProductListViewModel(
     private val application: Application
 ) : AndroidViewModel(application) {
 
+//
+//    private val retrofit = Retrofit.Builder()
+//        .baseUrl(Api.BASE_URL)
+//        .addConverterFactory(GsonConverterFactory.create())
+//        .build()
 
-    private val retrofit = Retrofit.Builder()
-        .baseUrl(Api.BASE_URL)
-        .addConverterFactory(GsonConverterFactory.create())
-        .build()
+//    private val productApi: ProductApi = retrofit.create(ProductApi::class.java)
 
-    private val productApi: ProductApi = retrofit.create(ProductApi::class.java)
+    private val productClient: ProductClient = ProductClient.getInstance()
 
-    private val productClient: ProductClient = ProductClient(productApi)
-
-    private val db = Room.databaseBuilder(
-        application.applicationContext,
-        ProductDatabase::class.java,
-        "product_table"
-    ).build()
+    private val db = ProductDatabase.getInstance(application.applicationContext)
+//        Room.databaseBuilder(
+//        application.applicationContext,
+//        ProductDatabase::class.java,
+//        "product_table"
+//    ).build()
 
     private val productDao = db.productDao()
 
@@ -59,6 +63,27 @@ class ProductListViewModel(
         viewModelScope.launch {
             fetchProducts(pageNumberState.value)
         }
+        // set up the work manager
+        val data = Data.Builder()
+            .putInt("page", pageNumberState.value)
+            .build()
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.CONNECTED)
+            .build()
+
+        val work = PeriodicWorkRequest
+            .Builder(FetchProducts::class.java, 1, TimeUnit.HOURS)
+            .setInputData(data)
+            .setConstraints(constraints)
+            .setInitialDelay(1, TimeUnit.HOURS)
+            .build()
+
+        WorkManager.getInstance(application.applicationContext).enqueueUniquePeriodicWork(
+            "fetchProducts",
+            ExistingPeriodicWorkPolicy.UPDATE,
+            work
+        )
     }
 
     /**
@@ -70,9 +95,6 @@ class ProductListViewModel(
         isLoading.value = true
         productListState.value = null
         viewModelScope.launch {
-            // set up the work manager
-//            val work = PeriodicWorkRequest.Builder(FetchProducts::class.java, 1, TimeUnit.HOURS).build()
-//            val workerResponse = WorkManager.getInstance(application.applicationContext).enqueue(work)
             try {
                 val response = repository.getProduct(page)
 

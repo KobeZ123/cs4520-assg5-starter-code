@@ -1,13 +1,11 @@
 package com.cs4520.assignment5.ui
 
-import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -19,13 +17,13 @@ import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.cs4520.assignment5.data.models.Product
 import com.cs4520.assignment5.domain.ProductListViewModel
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun ProductListScreen(
     productListViewModel: ProductListViewModel = viewModel()
@@ -53,7 +51,7 @@ fun LoadingProgressBarScreen(
     modifier: Modifier = Modifier
 ) {
     Box(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().background(Color.White),
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()
@@ -68,7 +66,7 @@ fun NoProductsAvailableScreen(
     modifier: Modifier = Modifier,
 ) {
     Box(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth().background(Color.White),
         contentAlignment = Alignment.Center,
     ) {
         Text(text = "No products available")
@@ -86,7 +84,9 @@ fun ProductListPage(
 
     val productListState = productListViewModel.productListState.value
 
-    Column {
+    Column (
+        modifier = Modifier.background(Color.White)
+    ){
         if (isLoading) {
             LoadingProgressBarScreen(
                 modifier = Modifier.weight(0.9f)
@@ -149,7 +149,8 @@ fun PaginationComponent(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 8.dp),
+            .padding(vertical = 8.dp)
+            .background(Color.White),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center,
     ) {
