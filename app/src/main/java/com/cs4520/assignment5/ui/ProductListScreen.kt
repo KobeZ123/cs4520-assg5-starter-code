@@ -3,12 +3,14 @@ package com.cs4520.assignment5.ui
 import android.os.Build
 import android.widget.Toast
 import androidx.annotation.RequiresApi
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.Button
@@ -25,28 +27,14 @@ import com.cs4520.assignment5.domain.ProductListViewModel
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun ProductListFragment(
+fun ProductListScreen(
     productListViewModel: ProductListViewModel = viewModel()
 ) {
     val context = LocalContext.current
 
-    val isLoading = productListViewModel.isLoading.value
-
-    val productListState = productListViewModel.productListState.value
-
     val errorMessageState = productListViewModel.errorMessageState.value
 
-    if (isLoading) {
-        LoadingProgressBarScreen()
-    }
-    
-    productListState?.run {
-        if (this.isEmpty()) {
-            NoProductsAvailableScreen()
-        } else {
-            ProductListScreen(productListViewModel = productListViewModel)
-        }
-    }
+    ProductListPage(productListViewModel = productListViewModel)
 
     if (errorMessageState.isNullOrEmpty().not()) {
         Toast.makeText(
@@ -61,9 +49,11 @@ fun ProductListFragment(
  * loading progress bar screen component
  */
 @Composable
-fun LoadingProgressBarScreen() {
+fun LoadingProgressBarScreen(
+    modifier: Modifier = Modifier
+) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
     ) {
         CircularProgressIndicator()
@@ -74,9 +64,11 @@ fun LoadingProgressBarScreen() {
  * no products available screen component
  */
 @Composable 
-fun NoProductsAvailableScreen() {
+fun NoProductsAvailableScreen(
+    modifier: Modifier = Modifier,
+) {
     Box(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier.fillMaxWidth(),
         contentAlignment = Alignment.Center,
     ) {
         Text(text = "No products available")
@@ -87,23 +79,44 @@ fun NoProductsAvailableScreen() {
  * product list screen component
  */
 @Composable
-fun ProductListScreen(
+fun ProductListPage(
     productListViewModel: ProductListViewModel,
 ) {
-    Column {
-//        productListViewModel.productListLiveData.observe(LocalLifecycleOwner.current) {
-//
-//        }
+    val isLoading = productListViewModel.isLoading.value
 
-        ProductList(
-            modifier = Modifier.weight(1f),
-            products = productListViewModel.productListState.value ?: emptyList()
-        )
-        PaginationComponent(
-            page = productListViewModel.pageNumberState.value ?: 1,
-            onPageNext = { productListViewModel.onNextPageClick() },
-            onPageBack = { productListViewModel.onBackPageClick() }
-        )
+    val productListState = productListViewModel.productListState.value
+
+    Column {
+        if (isLoading) {
+            LoadingProgressBarScreen(
+                modifier = Modifier.weight(0.9f)
+            )
+        }
+
+        productListState?.run {
+            if (this.isEmpty()) {
+                NoProductsAvailableScreen(
+                    modifier = Modifier.weight(0.9f)
+                )
+            } else {
+                ProductList(
+                    modifier = Modifier.weight(0.9f),
+                    products = productListViewModel.productListState.value ?: emptyList()
+                )
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .weight(0.1f)
+                .fillMaxWidth()
+        ) {
+            PaginationComponent(
+                page = productListViewModel.pageNumberState.value,
+                onPageNext = { productListViewModel.onNextPageClick() },
+                onPageBack = { productListViewModel.onBackPageClick() }
+            )
+        }
     }
 }
 
@@ -119,7 +132,7 @@ fun ProductList(
         modifier = modifier
     ) {
         items(products) { product ->
-            ProductCardFragment(product = product)
+            ProductCard(product = product)
         }
     }
 }
@@ -138,15 +151,29 @@ fun PaginationComponent(
             .fillMaxWidth()
             .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
     ) {
-        if (page > 1) {
-            Button(onClick = onPageBack) {
-                Text(text = "Back")
+        Box(
+            modifier = Modifier.width(96.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            if (page > 1) {
+                Button(onClick = onPageBack) {
+                    Text(text = "Back")
+                }
             }
         }
-        Text(text = page.toString())
-        Button(onClick = onPageNext) {
-            Text(text = "Next")
+        Text(
+            modifier = Modifier.padding(horizontal = 16.dp),
+            text = page.toString()
+        )
+        Box(
+            modifier = Modifier.width(96.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Button(onClick = onPageNext) {
+                Text(text = "Next")
+            }
         }
     }
 }

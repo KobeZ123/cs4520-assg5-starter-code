@@ -12,9 +12,6 @@ import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -29,7 +26,7 @@ import com.cs4520.assignment5.Screen
 import com.cs4520.assignment5.domain.LoginFragmentViewModel
 
 @Composable
-fun LoginFragment(
+fun LoginScreen(
     navHostController: NavHostController,
     loginFragmentViewModel: LoginFragmentViewModel = viewModel()
 ) {
@@ -88,6 +85,6 @@ fun LoginFragment(
 @Composable
 fun LoginFragmentPreview() {
     MaterialTheme{
-        LoginFragment(navHostController = rememberNavController())
+        LoginScreen(navHostController = rememberNavController())
     }
 }

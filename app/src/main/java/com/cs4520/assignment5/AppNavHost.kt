@@ -7,8 +7,8 @@ import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import com.cs4520.assignment5.ui.LoginFragment
-import com.cs4520.assignment5.ui.ProductListFragment
+import com.cs4520.assignment5.ui.LoginScreen
+import com.cs4520.assignment5.ui.ProductListScreen
 
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
@@ -23,10 +23,10 @@ fun AppNavHost(
         startDestination = startDestination
     ) {
         composable(NavigationItem.Login.route) {
-            LoginFragment(navController)
+            LoginScreen(navController)
         }
         composable(NavigationItem.ProductList.route) {
-            ProductListFragment()
+            ProductListScreen()
         }
     }
 }

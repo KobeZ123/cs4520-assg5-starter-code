@@ -1,14 +1,12 @@
 package com.cs4520.assignment5.domain
 
 import android.app.Application
-import android.os.Build
-import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.room.Room
-import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.PeriodicWorkRequest
 import androidx.work.WorkManager
 import com.cs4520.assignment5.util.constants.Api
 import com.cs4520.assignment5.data.api.ProductApi
@@ -23,6 +21,7 @@ import kotlinx.coroutines.launch
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 import java.time.Duration
+import java.util.concurrent.TimeUnit
 
 class ProductListViewModel(
     private val application: Application
@@ -67,15 +66,13 @@ class ProductListViewModel(
      * if successful, post product live to live data and add to room database
      * if unsuccessful, display error message
      */
-    @RequiresApi(Build.VERSION_CODES.O)
-    fun fetchProducts(page: Int) {
+    private fun fetchProducts(page: Int) {
         isLoading.value = true
         productListState.value = null
         viewModelScope.launch {
             // set up the work manager
-            val work = PeriodicWorkRequestBuilder<FetchProducts>(repeatInterval= Duration.ofHours(1)).build()
-            val result = WorkManager.getInstance(application.applicationContext).enqueue(work)
-
+//            val work = PeriodicWorkRequest.Builder(FetchProducts::class.java, 1, TimeUnit.HOURS).build()
+//            val workerResponse = WorkManager.getInstance(application.applicationContext).enqueue(work)
             try {
                 val response = repository.getProduct(page)
 
@@ -94,11 +91,13 @@ class ProductListViewModel(
 
     fun onNextPageClick() {
         pageNumberState.value += 1
+        fetchProducts(pageNumberState.value)
     }
 
     fun onBackPageClick() {
         if (pageNumberState.value > 1) {
             pageNumberState.value -= 1
         }
+        fetchProducts(pageNumberState.value)
     }
 }
